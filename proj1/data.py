@@ -44,7 +44,11 @@ def tolower_field(row):
     return(count, row)
 
 
-# Performs 
+# Performs label encoding in the database
+# input:  the whole database already preprocessed
+# output: a dictionary of encodings, indexed by each __encoding_cols__
+# each index of the dictionary is lexicographically ordered, therefore the label the position of the value in this list
+
 def label_encode(dic):
     # initialize the encoding dictionary
     enc = {}
