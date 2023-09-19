@@ -1,5 +1,7 @@
 import csv
 
+from statistics import mean
+
 # preference_scores_of_participants: [attractive_important, sincire_important, intellignce_important, funny_important,
 #   ambition_important, shared_interests_important
 
@@ -13,6 +15,28 @@ import csv
 
 unquote_col = ["race", "race_o", "field"]
 encoding_cols = ["gender", "race", "race_o", "field"]
+preferences = ["attractive_important", "sincere_important", "intelligence_important", 
+               "funny_important", "ambition_important", "shared_interests_important"]
+
+preferences_partner = ["pref_o_attractive", "pref_o_sincere", "pref_o_intelligence", "pref_o_funny", "pref_o_ambitious",
+                      "pref_o_shared_interests"]
+
+
+def normalize(dic, prefs):
+    total = 0
+
+    # calculate total
+    for row in dic:
+        for preference in prefs:
+            total += float(row[preference])
+
+        # normalize
+        for preference in prefs:
+            row[preference] = float(row[preference]) / total
+        total = 0
+    
+
+    return dic
 
 # Unquotes the columns defined in __unquote_col__
 # input: a row of dating-full in the form of dictionary
@@ -69,11 +93,6 @@ def label_encode(dic):
 
     return enc
 
-def print_encodings(enc):
-    for enc_col in encoding_cols:
-        for id, val in enc[enc_col]:
-            print("Value assigned for {} in column {}: {}".format(val, enc_col, id))
-            
 
 # Processes a dictionary by doing the following operations:
 # 1 - unquote cells in unquote_col
@@ -96,8 +115,20 @@ def preprocess(in_dic):
         out_dic.append(row)
     
     label_encodings = label_encode(out_dic)
+    out_dic = normalize(out_dic, preferences)
+    out_dic = normalize(out_dic, preferences_partner)
     return (unq_count, lower_count, label_encodings, out_dic)
 
+def print_encodings(enc):
+    for enc_col in encoding_cols:
+        for id, val in enc[enc_col]:
+            print("Value assigned for {} in column {}: {}".format(val, enc_col, id))
+            
+
+def print_means(dic):
+    for pref in preferences + preferences_partner:
+        col = [row[pref] for row in dic]
+        print("Mean of {}: {}".format(pref, round(mean(col), 2)))
 
 
 with open('dating-full.csv', newline='') as csvfile:
@@ -106,5 +137,6 @@ with open('dating-full.csv', newline='') as csvfile:
     # print(dicdata[48])
     print("Quotes removed from", unq_count, "cells")
     print("Standardized", lower_count, "cells to lower case")
-    print_encodings(label_encodings)
+    # print_encodings(label_encodings)
+    print_means(dicdata)
 
