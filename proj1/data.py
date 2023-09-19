@@ -44,10 +44,13 @@ def tolower_field(row):
     return(count, row)
 
 
-def encode(dic):
-    enc = {}
+# Performs 
+def label_encode(dic):
     # initialize the encoding dictionary
+    enc = {}
     for enc_col in encoding_cols:
+        # we use sets for the label encoding, this way we always only add one element
+        # each column in encoding_cols have a different set of label encodings
         enc[enc_col] = set()
 
     for row in dic:
@@ -57,8 +60,8 @@ def encode(dic):
     for enc_col in encoding_cols:
         enc[enc_col] = list(enc[enc_col])
         enc[enc_col].sort()
+        # I'm not sure if it's necessary to do the enumeration of each encoding here
         enc[enc_col] = enumerate(enc[enc_col])
-        print(list(enc[enc_col]))
 
     return enc
 
@@ -73,10 +76,10 @@ def print_encodings(enc):
 # 2 - convert values in column field to lowercase
 # input: csvDicReader
 # output: (lower_count count, encodings, out_dic)
-#       outdic: preprocessed dictionary 
 #       unq_count: number of unquoted cells
 #       unq_count: number of lower cased field cells
-#       encodings: encodings for the columns in encodings_val
+#       label_encodings: encodings for the columns in encodings_val
+#       outdic: preprocessed dictionary 
 def preprocess(in_dic):
     unq_count = 0
     lower_count = 0
@@ -88,16 +91,16 @@ def preprocess(in_dic):
         lower_count += c1
         out_dic.append(row)
     
-    encodings = encode(out_dic)
-    return (unq_count, lower_count, encodings, out_dic)
+    label_encodings = label_encode(out_dic)
+    return (unq_count, lower_count, label_encodings, out_dic)
 
 
 
 with open('dating-full.csv', newline='') as csvfile:
     fulldata = csv.DictReader(csvfile, delimiter=',')
-    unq_count, lower_count, encodings, dicdata = preprocess(fulldata)
+    unq_count, lower_count, label_encodings, dicdata = preprocess(fulldata)
     # print(dicdata[48])
     print("Quotes removed from", unq_count, "cells")
     print("Standardized", lower_count, "cells to lower case")
-    # print_encodings(encodings)
+    print_encodings(label_encodings)
 
