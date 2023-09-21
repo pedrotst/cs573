@@ -1,6 +1,11 @@
 import csv
+from globals import *
+import databin as databin
 
 from statistics import mean
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 # preference_scores_of_participants: [attractive_important, sincire_important, intellignce_important, funny_important,
 #   ambition_important, shared_interests_important
@@ -11,15 +16,7 @@ from statistics import mean
 # continuous_valued_columns: not [ gender, rance, race_o, samerace, field, decision ]
 
 # rating_of_partner_from_participant: attractive_partner, sincere_partner, intelligence_partner, funny_partner,
-#   ambition_partner, shared_interests, partner
-
-unquote_col = ["race", "race_o", "field"]
-encoding_cols = ["gender", "race", "race_o", "field"]
-preferences = ["attractive_important", "sincere_important", "intelligence_important", 
-               "funny_important", "ambition_important", "shared_interests_important"]
-
-preferences_partner = ["pref_o_attractive", "pref_o_sincere", "pref_o_intelligence", "pref_o_funny", "pref_o_ambitious",
-                      "pref_o_shared_interests"]
+#   ambition_partner, shared_interests_partner
 
 
 def normalize(dic, prefs):
@@ -68,31 +65,6 @@ def tolower_field(row):
     return(count, row)
 
 
-# Performs label encoding in the database
-# input:  the whole database already preprocessed
-# output: a dictionary of encodings, indexed by each __encoding_cols__
-# each index of the dictionary is lexicographically ordered, therefore the label the position of the value in this list
-
-def label_encode(dic):
-    # initialize the encoding dictionary
-    enc = {}
-    for enc_col in encoding_cols:
-        # we use sets for the label encoding, this way we always only add one element
-        # each column in encoding_cols have a different set of label encodings
-        enc[enc_col] = set()
-
-    for row in dic:
-        for enc_col in encoding_cols:
-            enc[enc_col].add(row[enc_col])
-    
-    for enc_col in encoding_cols:
-        enc[enc_col] = list(enc[enc_col])
-        enc[enc_col].sort()
-        # I'm not sure if it's necessary to do the enumeration of each encoding here
-        enc[enc_col] = enumerate(enc[enc_col])
-
-    return enc
-
 
 # Processes a dictionary by doing the following operations:
 # 1 - unquote cells in unquote_col
@@ -114,14 +86,14 @@ def preprocess(in_dic):
         lower_count += c1
         out_dic.append(row)
     
-    label_encodings = label_encode(out_dic)
+    label_encodings = label_encode(out_dic, encoding_cols)
     out_dic = normalize(out_dic, preferences)
     out_dic = normalize(out_dic, preferences_partner)
     return (unq_count, lower_count, label_encodings, out_dic)
 
 def print_encodings(enc):
     for enc_col in encoding_cols:
-        for id, val in enc[enc_col]:
+        for id, val in enumerate(enc[enc_col]):
             print("Value assigned for {} in column {}: {}".format(val, enc_col, id))
             
 
@@ -131,12 +103,21 @@ def print_means(dic):
         print("Mean of {}: {}".format(pref, round(mean(col), 2)))
 
 
-with open('dating-full.csv', newline='') as csvfile:
-    fulldata = csv.DictReader(csvfile, delimiter=',')
-    unq_count, lower_count, label_encodings, dicdata = preprocess(fulldata)
-    # print(dicdata[48])
-    print("Quotes removed from", unq_count, "cells")
-    print("Standardized", lower_count, "cells to lower case")
-    # print_encodings(label_encodings)
-    print_means(dicdata)
 
+
+if __name__ == "__main__":
+    with open('dating-full.csv', newline='') as csvfile:
+        fulldata = csv.DictReader(csvfile, delimiter=',')
+        unq_count, lower_count, label_encodings, dicdata = preprocess(fulldata)
+        # print(dicdata[48])
+        print("Quotes removed from", unq_count, "cells")
+        print("Standardized", lower_count, "cells to lower case")
+        print_encodings(label_encodings)
+        print_means(dicdata)
+        with open('dating.csv', 'w') as writefile:
+            writer = csv.DictWriter(writefile, dicdata[0].keys())
+            writer.writeheader()
+            writer.writerows(dicdata)
+        # plot_preferences_gender(dicdata)
+        # second_date_by_rating(dicdata)
+                            
