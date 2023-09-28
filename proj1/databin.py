@@ -1,4 +1,5 @@
 import csv
+import copy
 
 from globals import *
 
@@ -6,19 +7,20 @@ def getminmax(dic):
     minmax_dic = {}
 
     for attr in continuos_valued:
-        vals = [float(x[attr]) for x in dic]
-        maxval = max(vals)
-        minval = min(vals)
+        # vals = [float(x[attr]) for x in dic]
+        # maxval = max(vals)
+        minval = 0
         # make sure that the values discretized in previous step will fall in [0,1]
         if(attr == "age" or attr == "age_o"):
-            if maxval > 58:
-                maxval = 58
+            minval = 18
+            maxval = 58
         elif (attr in maxval_ten):
-            if maxval > 10:
-                maxval = 10
+            maxval = 10
+        elif (attr in preferences+preferences_partner):
+            maxval = 1
         elif (attr == "interests_correlate"):
-            if maxval > 1:
-                maxval = 1
+            minval = -1
+            maxval = 1
         minmax_dic[attr] = (minval, maxval)
     
     return minmax_dic;
@@ -27,26 +29,36 @@ def binerize(dic):
     binned_dic = []
 
     minmax_dic = getminmax(dic)
+    p = 0
+    p1 = 0
 
     for row in dic:
         newrow = {}
         for col in continuos_valued:
             minval, maxval = minmax_dic[col]
             bin_size = float((maxval - minval) / 5)
+            # print("{}: minval = {}, maxval = {}".format(col, minval, maxval))
             val = float(row[col])
+            if(col=="reading" and p == 0):
+                print("{}: minval = {}, maxval = {}".format(col, minval, maxval))
+                p = 1
+            if(col=="gaming" and p1 == 0):
+                print("{}: minval = {}, maxval = {}".format(col, minval, maxval))
+                p1 = 1
 
-            if val <= minval + bin_size :
+            
+            if val < minval + bin_size :
                 newrow[col] = 0
-            elif bin_size + minval < val <= minval + 2*bin_size:
+            elif bin_size + minval <= val < minval + 2*bin_size:
                 newrow[col] = 1
-            elif 2*bin_size + minval < val <= minval + 3*bin_size:
+            elif 2*bin_size + minval <= val < minval + 3*bin_size:
                 newrow[col] = 2
-            elif 3*bin_size + minval < val <= minval + 4*bin_size:
+            elif 3*bin_size + minval <= val < minval + 4*bin_size:
                 newrow[col] = 3
             else:
                 newrow[col] = 4
         newrow["decision"] = row["decision"]
-        binned_dic.append(newrow)
+        binned_dic.append(copy.deepcopy(newrow))
         
     return binned_dic;
 
@@ -70,6 +82,7 @@ if __name__ == "__main__":
         # print(bins.keys())
         # print(binned)
         printbinsizes(binned)
+        # print(binned)
         with open('dating-binned.csv', 'w') as writefile:
             writer = csv.DictWriter(writefile, binned[0].keys())
             writer.writeheader()
