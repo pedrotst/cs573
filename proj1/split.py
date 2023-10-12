@@ -21,11 +21,11 @@ def sample(t_frac, data):
     test_sample = sample.tail(test_len-1)
     return (test_sample, train_sample)
 
+def do_sample():
+    data = pd.read_csv("data/dating-binned.csv")
+    test_sample, train_sample = sample(.2, data)
+    test_sample.to_csv("data/testSet.csv", index=False)
+    train_sample.to_csv("data/trainingSet.csv", index=False)
 
 if __name__ == "__main__":
-    data = pd.read_csv("dating-binned.csv")
-
-    test_sample, train_sample = sample(.2, data)
-
-    test_sample.to_csv("testSet.csv", index=False)
-    train_sample.to_csv("trainingSet.csv", index=False)
+    do_sample()

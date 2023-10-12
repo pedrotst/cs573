@@ -64,8 +64,6 @@ def tolower_field(row):
         row["field"] = row["field"].lower()
     return(count, row)
 
-
-
 # Processes a dictionary by doing the following operations:
 # 1 - unquote cells in unquote_col
 # 2 - convert values in column field to lowercase
@@ -89,12 +87,14 @@ def preprocess(in_dic):
     label_encodings = label_encode(out_dic, encoding_cols)
     out_dic = normalize(out_dic, preferences)
     out_dic = normalize(out_dic, preferences_partner)
+    out_dic = encode_dic(out_dic, encoding_cols, label_encodings)
     return (unq_count, lower_count, label_encodings, out_dic)
 
 def print_encodings(enc):
     for enc_col in encoding_cols:
         for id, val in enumerate(enc[enc_col]):
-            print("Value assigned for {} in column {}: {}".format(val, enc_col, id))
+            if val == 'male' or (val == 'European/Caucasian-American' and enc_col == 'race') or (val == 'Latino/Hispanic American' and enc_col == 'race_o') or val == 'law':
+                print("Value assigned for {} in column {}: {}".format(val, enc_col, id))
             
 
 def print_means(dic):
@@ -103,18 +103,15 @@ def print_means(dic):
         print("Mean of {}: {}".format(pref, round(mean(col), 2)))
 
 
-
-
 if __name__ == "__main__":
-    with open('dating-full.csv', newline='') as csvfile:
+    with open('data/dating-full.csv', newline='') as csvfile:
         fulldata = csv.DictReader(csvfile, delimiter=',')
         unq_count, lower_count, label_encodings, dicdata = preprocess(fulldata)
-        # print(dicdata[48])
         print("Quotes removed from", unq_count, "cells")
         print("Standardized", lower_count, "cells to lower case")
         print_encodings(label_encodings)
         print_means(dicdata)
-        with open('dating.csv', 'w') as writefile:
+        with open('data/dating.csv', 'w') as writefile:
             writer = csv.DictWriter(writefile, dicdata[0].keys())
             writer.writeheader()
             writer.writerows(dicdata)

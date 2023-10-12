@@ -65,6 +65,8 @@ def plot_preferences_gender(dic):
     # Adjust the margins
     # plt.subplots_adjust(bottom= 0.2, top = 0.8)
 
+    plt.legend(["Male", "Female"])
+
     plt.savefig('graphs/importance.png', bbox_inches = 'tight')
     #plt.show()
 
@@ -72,7 +74,7 @@ def plot_preferences_gender(dic):
 
 
 def second_date_by_rating(dic):
-    label_encodings = label_encode(dic, rating_of_partner)
+    # label_encodings = label_encode(dic, rating_of_partner)
     # print(label_encodings)
 
 
@@ -103,9 +105,76 @@ def second_date_by_rating(dic):
 
     return;
 
+def plot_nbc_bins(bin_nums, train_accs, test_accs):
+    plt.tight_layout()
+    fig = plt.figure()
+
+
+    barlocs = [
+        [1, 2], 
+        [4, 5], 
+        [7, 8], 
+        [10, 11], 
+        [13, 14], 
+        [16, 17]]
+
+    barwidth = .9
+
+    for barloc, train, test in zip(barlocs, train_accs, test_accs):
+        plt.bar(barloc[0], train, width=barwidth, color='b', label="Training Accuracy")
+        plt.bar(barloc[1], test, width=barwidth, color='r', label="Testing Accuracy")
+
+    plt.xticks([mean(barloc) for barloc in barlocs], bin_nums)
+    # plt.xticks(y_pos, bin_nums)
+
+    plt.xlabel("Bin Size")
+    plt.ylabel("Model Accuracy")
+    plt.legend(["Training Accuracy", "Testing Accuracy"])
+    ax = plt.gca()
+    ax.set_ylim([.5, 1])
+
+    plt.savefig('graphs/bin_accuracies.png')
+
+
+    return;
+
+def plot_nbc_samples(bin_nums, train_accs, test_accs):
+    plt.tight_layout()
+    fig = plt.figure()
+
+
+    barlocs = [
+        [1, 2], 
+        [4, 5], 
+        [7, 8], 
+        [10, 11], 
+        [13, 14], 
+        [16, 17],
+        [19, 20],
+        [22, 23]
+        ]
+
+    barwidth = .9
+
+    for barloc, train, test in zip(barlocs, train_accs, test_accs):
+        plt.bar(barloc[0], train, width=barwidth, color='b', label="Training Accuracy")
+        plt.bar(barloc[1], test, width=barwidth, color='r', label="Testing Accuracy")
+
+    plt.xticks([mean(barloc) for barloc in barlocs], bin_nums)
+    # plt.xticks(y_pos, bin_nums)
+
+    plt.xlabel("Sample Size")
+    plt.ylabel("Model Accuracy")
+    plt.legend(["Training Accuracy", "Testing Accuracy"])
+    ax = plt.gca()
+    ax.set_ylim([.5, 1])
+    plt.savefig('graphs/sample_accuracies.png')
+
+
+    return;
 
 if __name__ == "__main__":
-    with open('dating.csv', 'r') as csvfile:
+    with open('data/dating.csv', 'r') as csvfile:
         dicdata = csv.DictReader(csvfile, delimiter=',')
         dicdata = list(dicdata)
 

@@ -25,39 +25,42 @@ def getminmax(dic):
     
     return minmax_dic;
 
-def binerize(dic):
+def binerize(dic, bin_num):
     binned_dic = []
 
     minmax_dic = getminmax(dic)
     p = 0
     p1 = 0
+    not_continuous = [attr for attr in dic[0].keys() if not (attr in continuos_valued)]
 
     for row in dic:
         newrow = {}
         for col in continuos_valued:
+            p = 0
             minval, maxval = minmax_dic[col]
-            bin_size = float((maxval - minval) / 5)
-            # print("{}: minval = {}, maxval = {}".format(col, minval, maxval))
+            bin_size = float((maxval - minval) / bin_num)
             val = float(row[col])
-            if(col=="reading" and p == 0):
-                print("{}: minval = {}, maxval = {}".format(col, minval, maxval))
-                p = 1
-            if(col=="gaming" and p1 == 0):
-                print("{}: minval = {}, maxval = {}".format(col, minval, maxval))
-                p1 = 1
 
-            
             if val < minval + bin_size :
                 newrow[col] = 0
-            elif bin_size + minval <= val < minval + 2*bin_size:
-                newrow[col] = 1
-            elif 2*bin_size + minval <= val < minval + 3*bin_size:
-                newrow[col] = 2
-            elif 3*bin_size + minval <= val < minval + 4*bin_size:
-                newrow[col] = 3
-            else:
-                newrow[col] = 4
-        newrow["decision"] = row["decision"]
+                p += 1
+
+            for i in range(1, bin_num):
+                if minval + i*bin_size <= val < minval + (i+1)*bin_size:
+                    newrow[col] = i
+                    p += 1
+
+            if val >= minval + bin_num*bin_size:
+                newrow[col] = bin_num-1
+                p += 1
+
+            if (p != 1):
+                print("p is {} for attr: {} val: {}".format(p, col, val))
+
+        for attr in not_continuous:
+            newrow[attr] = row[attr]
+
+
         binned_dic.append(copy.deepcopy(newrow))
         
     return binned_dic;
@@ -71,27 +74,16 @@ def printbinsizes(binned_dic):
                     binsizes[i] += 1
         print("{}: {}".format(attr, binsizes))
 
-
-if __name__ == "__main__":
-    with open('dating.csv', 'r') as csvfile:
+def bin(bin_num):
+    with open('data/dating.csv', 'r') as csvfile:
         dicdata = csv.DictReader(csvfile, delimiter=',')
-        # print('age' in list(dicdata)[0].keys())
-
-        binned = binerize(list(dicdata))
-        # bins["binId"] = [0, 1, 2, 3, 4]
-        # print(bins.keys())
-        # print(binned)
-        printbinsizes(binned)
-        # print(binned)
-        with open('dating-binned.csv', 'w') as writefile:
+        binned = binerize(list(dicdata), bin_num)
+        with open('data/dating-binned.csv', 'w') as writefile:
             writer = csv.DictWriter(writefile, binned[0].keys())
             writer.writeheader()
             writer.writerows(binned)
+        return binned
 
-
-            # keylist = list(bins.keys())
-            # writer.writerow(["binId"] + keylist)
-
-            # for key in bins.keys():
-            #     for i in range(5):
-            #         writer.writerow([str(key) + str(i)] + bins[key][i])
+if __name__ == "__main__":
+    binned = bin(5)
+    printbinsizes(binned)
